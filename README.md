@@ -22,6 +22,10 @@ Requirements: Node.js 20+ and a running MongoDB instance (local or MongoDB Atlas
 3. Start both applications with `npm run dev`.
 4. Open `http://localhost:5173` for the React dashboard. The API is at `http://localhost:5000/api`.
 
+## Public preview
+
+The public demo is available at <https://vaishnavichette-ai.github.io/daylight-habit-tracker/>. It runs in preview mode with sample habits. Account login and MongoDB persistence require a separately deployed API; configure `VITE_API_URL` at build time and set the server's `CLIENT_URL`, `MONGODB_URI`, and `JWT_SECRET` for that deployment.
+
 ## REST API
 
 All routes below are prefixed with `/api`. Protected routes require `Authorization: Bearer <token>`.
@@ -55,3 +59,4 @@ server/src/middleware/ JWT authentication and admin role middleware
 - [Project report](docs/Habit_Tracking_Application_Project_Report.docx)
 
 Never commit server/.env; it contains local secrets. Use server/.env.example as a template and replace the JWT secret for your machine.
+
