@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const habitSchema = new mongoose.Schema({user:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},name:{type:String,required:true,trim:true,maxlength:100},category:{type:String,enum:['Wellness','Fitness','Learning','Mindfulness','Productivity','Other'],default:'Wellness'},target:{type:Number,default:1,min:1,max:100},unit:{type:String,default:'time',trim:true,maxlength:24},frequency:{type:String,enum:['daily','weekdays','weekly'],default:'daily'},color:{type:String,default:'green'},archived:{type:Boolean,default:false}},{timestamps:true});
+export default mongoose.model('Habit',habitSchema);

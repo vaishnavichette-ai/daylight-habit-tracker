@@ -55,4 +55,3 @@ server/src/middleware/ JWT authentication and admin role middleware
 - [Project report](docs/Habit_Tracking_Application_Project_Report.docx)
 
 Never commit server/.env; it contains local secrets. Use server/.env.example as a template and replace the JWT secret for your machine.
-

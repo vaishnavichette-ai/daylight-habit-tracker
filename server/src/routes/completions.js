@@ -1,0 +1,10 @@
+import {Router} from 'express';
+import mongoose from 'mongoose';
+import Completion from '../models/Completion.js';
+import Habit from '../models/Habit.js';
+import {authenticate} from '../middleware/auth.js';
+const router=Router();router.use(authenticate);
+router.get('/',async(req,res,next)=>{try{const filter={user:req.user.id};if(req.query.habit){if(!mongoose.isValidObjectId(req.query.habit))return res.status(400).json({message:'Invalid habit ID.'});filter.habit=req.query.habit}if(req.query.from||req.query.to){filter.date={};if(req.query.from)filter.date.$gte=req.query.from;if(req.query.to)filter.date.$lte=req.query.to}res.json(await Completion.find(filter).sort({date:-1}).limit(500).lean())}catch(e){next(e)}});
+router.put('/',async(req,res,next)=>{try{const{habit:habitId,date,count}=req.body;if(!mongoose.isValidObjectId(habitId)||!/^\d{4}-\d{2}-\d{2}$/.test(date||'')||!Number.isInteger(count)||count<0)return res.status(400).json({message:'Provide a habit ID, date (YYYY-MM-DD), and non-negative whole-number count.'});const habit=await Habit.findOne({_id:habitId,user:req.user.id,archived:false});if(!habit)return res.status(404).json({message:'Active habit not found.'});if(count===0){await Completion.findOneAndDelete({user:req.user.id,habit:habitId,date});return res.json({habit:habitId,date,count:0})}const completion=await Completion.findOneAndUpdate({user:req.user.id,habit:habitId,date},{$set:{count}},{upsert:true,new:true,runValidators:true,setDefaultsOnInsert:true});res.json(completion)}catch(e){next(e)}});
+router.delete('/:id',async(req,res,next)=>{try{const{date}=req.query;if(!mongoose.isValidObjectId(req.params.id)||!/^\d{4}-\d{2}-\d{2}$/.test(date||''))return res.status(400).json({message:'Provide a valid habit ID and date (YYYY-MM-DD).'});const completion=await Completion.findOneAndDelete({user:req.user.id,habit:req.params.id,date});if(!completion)return res.status(404).json({message:'Completion not found.'});res.json({message:'Completion removed.'})}catch(e){next(e)}});
+export default router;

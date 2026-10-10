@@ -1,0 +1,13 @@
+import {Router} from 'express';
+import mongoose from 'mongoose';
+import Habit from '../models/Habit.js';
+import Completion from '../models/Completion.js';
+import {authenticate} from '../middleware/auth.js';
+const router=Router();router.use(authenticate);
+const validId=id=>mongoose.isValidObjectId(id);
+router.get('/',async(req,res,next)=>{try{const filter={user:req.user.id};if(req.query.archived==='true')filter.archived=true;else filter.archived=false;res.json(await Habit.find(filter).sort({createdAt:-1}).lean())}catch(e){next(e)}});
+router.post('/',async(req,res,next)=>{try{const{name,category,target,unit,frequency,color}=req.body;if(!name?.trim())return res.status(400).json({message:'A habit name is required.'});const habit=await Habit.create({user:req.user.id,name,category,target,unit,frequency,color});res.status(201).json(habit)}catch(e){next(e)}});
+router.get('/:id',async(req,res,next)=>{try{if(!validId(req.params.id))return res.status(400).json({message:'Invalid habit ID.'});const habit=await Habit.findOne({_id:req.params.id,user:req.user.id});if(!habit)return res.status(404).json({message:'Habit not found.'});res.json(habit)}catch(e){next(e)}});
+router.patch('/:id',async(req,res,next)=>{try{if(!validId(req.params.id))return res.status(400).json({message:'Invalid habit ID.'});const fields=['name','category','target','unit','frequency','color','archived'];const changes=Object.fromEntries(Object.entries(req.body).filter(([key])=>fields.includes(key)));const habit=await Habit.findOneAndUpdate({_id:req.params.id,user:req.user.id},{$set:changes},{new:true,runValidators:true});if(!habit)return res.status(404).json({message:'Habit not found.'});res.json(habit)}catch(e){next(e)}});
+router.delete('/:id',async(req,res,next)=>{try{if(!validId(req.params.id))return res.status(400).json({message:'Invalid habit ID.'});const habit=await Habit.findOneAndDelete({_id:req.params.id,user:req.user.id});if(!habit)return res.status(404).json({message:'Habit not found.'});await Completion.deleteMany({habit:habit._id,user:req.user.id});res.json({message:'Habit and its completion history deleted.'})}catch(e){next(e)}});
+export default router;
